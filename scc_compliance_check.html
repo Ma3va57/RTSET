@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCC IT Services – Compliance Check</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --kit-green: #009682;
+      --kit-green-dark: #007a6a;
+      --kit-green-light: #e6f5f3;
+      --kit-grey-dark: #2b2b2b;
+      --kit-grey-mid: #5a5a5a;
+      --kit-grey-light: #f4f4f4;
+      --kit-grey-border: #d8d8d8;
+      --kit-white: #ffffff;
+      --kit-red: #c0392b;
+      --kit-amber: #e67e22;
+      --font-main: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+      --font-mono: 'Source Code Pro', 'Courier New', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-main);
+      background-color: #ebebeb;
+      color: var(--kit-grey-dark);
+    }
+
+    /* ─── INSTITUTIONAL HEADER ─────────────────────────────── */
+    .inst-header {
+      background: var(--kit-grey-dark);
+      color: var(--kit-white);
+      padding: 0;
+      border-bottom: 3px solid var(--kit-green);
+    }
+
+    .inst-header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .inst-logo-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .inst-logo-badge {
+      width: 38px;
+      height: 38px;
+      background: var(--kit-green);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .inst-title-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inst-name {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: var(--kit-white);
+    }
+
+    .inst-sub {
+      font-size: 11.5px;
+      color: #aaa;
+      font-weight: 300;
+      margin-top: 1px;
+    }
+
+    .inst-header-right {
+      margin-left: auto;
+      font-size: 11px;
+      color: #888;
+      font-family: var(--font-mono);
+      text-align: right;
+    }
+
+    /* ─── TOPBAR STATUS STRIP ──────────────────────────────── */
+    .status-strip {
+      background: var(--kit-green);
+      color: white;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-align: center;
+      padding: 5px 0;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    /* ─── MAIN LAYOUT ──────────────────────────────────────── */
+    .page-body {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .card {
+      background: var(--kit-white);
+      border: 1px solid var(--kit-grey-border);
+      border-top: 4px solid var(--kit-green);
+      border-radius: 3px;
+      width: 100%;
+      max-width: 640px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 22px 32px 18px;
+      border-bottom: 1px solid var(--kit-grey-border);
+      background: var(--kit-grey-light);
+    }
+
+    .card-header h1 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--kit-grey-dark);
+      letter-spacing: 0.2px;
+    }
+
+    .card-header p {
+      font-size: 12.5px;
+      color: var(--kit-grey-mid);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    .card-body {
+      padding: 32px;
+    }
+
+    /* ─── LOADING STATE ────────────────────────────────────── */
+    #loading-state { display: block; }
+    #result-state  { display: none; }
+
+    .check-list {
+      list-style: none;
+      margin-bottom: 28px;
+    }
+
+    .check-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13.5px;
+      color: var(--kit-grey-mid);
+    }
+
+    .check-list li:last-child { border-bottom: none; }
+
+    .check-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .check-icon.pending {
+      border: 2px solid #ccc;
+      background: none;
+      position: relative;
+    }
+
+    .check-icon.pending::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border: 2px solid var(--kit-green);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    .check-icon.ok {
+      background: var(--kit-green);
+      color: white;
+      font-size: 11px;
+      animation: popIn 0.25s ease forwards;
+    }
+
+    .check-icon.warn {
+      background: var(--kit-amber);
+      color: white;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes popIn {
+      0%   { transform: scale(0.5); opacity: 0; }
+      60%  { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .label-text { flex: 1; }
+    .label-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #aaa;
+      white-space: nowrap;
+    }
+
+    .label-status.done { color: var(--kit-green); font-weight: 600; }
+    .label-status.running { color: var(--kit-amber); }
+
+    .progress-section {
+      margin-top: 4px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--kit-grey-mid);
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-track {
+      height: 6px;
+      background: #e4e4e4;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--kit-green), #00b89e);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .loading-footer {
+      margin-top: 22px;
+      font-size: 11.5px;
+      color: #aaa;
+      font-family: var(--font-mono);
+      border-top: 1px solid #f0f0f0;
+      padding-top: 14px;
+    }
+
+    /* ─── RESULT STATE ─────────────────────────────────────── */
+    #result-state {
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-banner {
+      background: var(--kit-green-light);
+      border: 1.5px solid var(--kit-green);
+      border-radius: 3px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .result-banner-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--kit-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .result-banner-text h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--kit-green-dark);
+    }
+
+    .result-banner-text p {
+      font-size: 12px;
+      color: #4a7c76;
+      margin-top: 2px;
+    }
+
+    .result-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .summary-tile {
+      background: var(--kit-grey-light);
+      border: 1px solid var(--kit-grey-border);
+      border-radius: 3px;
+      padding: 12px 16px;
+    }
+
+    .summary-tile .tile-label {
+      font-size: 11px;
+      color: #999;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+
+    .summary-tile .tile-value {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--kit-grey-dark);
+    }
+
+    .summary-tile .tile-value.green { color: var(--kit-green); }
+
+    /* ─── FISH SECTION ─────────────────────────────────────── */
+    .fish-section {
+      text-align: center;
+      margin: 30px 0 24px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .fish-section img {
+      max-width: 220px;
+      width: 100%;
+      border-radius: 8px;
+      filter: drop-shadow(0 8px 20px rgba(0,150,130,0.18));
+      transition: transform 0.3s ease;
+    }
+
+    .fish-section img:hover {
+      transform: scale(1.04) rotate(-2deg);
+    }
+
+    .fish-caption {
+      margin-top: 18px;
+      font-size: 14px;
+      color: var(--kit-grey-mid);
+      line-height: 1.7;
+    }
+
+    .fish-caption strong {
+      display: block;
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--kit-grey-dark);
+      margin-top: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    /* ─── BUTTON ───────────────────────────────────────────── */
+    .action-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 10px;
+      padding-top: 22px;
+      border-top: 1px solid #f0f0f0;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border: none;
+      border-radius: 3px;
+      font-family: var(--font-main);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.12s;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-primary {
+      background: var(--kit-green);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--kit-green-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: none;
+      color: var(--kit-grey-mid);
+      border: 1.5px solid var(--kit-grey-border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--kit-grey-light);
+    }
+
+    /* ─── MODAL ────────────────────────────────────────────── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .modal {
+      background: var(--kit-white);
+      border-top: 4px solid var(--kit-green);
+      border-radius: 3px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid var(--kit-grey-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--kit-grey-dark);
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 18px;
+      transition: background 0.15s;
+    }
+
+    .modal-close:hover { background: #f0f0f0; color: #555; }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .diag-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 13px;
+    }
+
+    .diag-row:last-of-type { border-bottom: none; }
+
+    .diag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .diag-dot.green { background: var(--kit-green); }
+
+    .diag-label { flex: 1; color: var(--kit-grey-mid); }
+    .diag-val { font-family: var(--font-mono); font-size: 12px; color: var(--kit-green); font-weight: 500; }
+
+    .modal-punchline {
+      margin-top: 20px;
+      background: var(--kit-green-light);
+      border-left: 3px solid var(--kit-green);
+      padding: 14px 16px;
+      border-radius: 0 3px 3px 0;
+      font-size: 13.5px;
+      color: var(--kit-grey-dark);
+      line-height: 1.6;
+    }
+
+    .modal-footer {
+      padding: 14px 24px;
+      border-top: 1px solid var(--kit-grey-border);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* ─── FOOTER ───────────────────────────────────────────── */
+    .page-footer {
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+      padding: 18px 0 28px;
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+
+<!-- INSTITUTIONAL HEADER -->
+<header class="inst-header">
+  <div class="inst-header-inner">
+    <div class="inst-logo-block">
+      <div class="inst-logo-badge">SCC</div>
+      <div class="inst-title-group">
+        <span class="inst-name">SCC IT Services – Compliance Check</span>
+        <span class="inst-sub">Steinbuch Centre for Computing · Security &amp; Infrastructure Division</span>
+      </div>
+    </div>
+    <div class="inst-header-right" id="header-meta">
+      Session: <span id="session-id">–</span><br/>
+      <span id="header-ts">–</span>
+    </div>
+  </div>
+</header>
+
+<div class="status-strip" id="status-strip">⬤ &nbsp;Initiating compliance verification…</div>
+
+<main class="page-body">
+  <div class="card">
+    <div class="card-header">
+      <h1>Client-side Configuration Verification</h1>
+      <p>Policy enforcement scan · SCC Security Framework 4.2 · Do not close this window</p>
+    </div>
+    <div class="card-body">
+
+      <!-- LOADING STATE -->
+      <div id="loading-state">
+        <ul class="check-list" id="check-list">
+          <li data-key="os">
+            <div class="check-icon pending" id="icon-os"></div>
+            <span class="label-text">Operating system version &amp; patch level</span>
+            <span class="label-status running" id="status-os">SCANNING…</span>
+          </li>
+          <li data-key="fw">
+            <div class="check-icon pending" id="icon-fw"></div>
+            <span class="label-text">Host-based firewall status</span>
+            <span class="label-status" id="status-fw">PENDING</span>
+          </li>
+          <li data-key="av">
+            <div class="check-icon pending" id="icon-av"></div>
+            <span class="label-text">Endpoint protection signature age</span>
+            <span class="label-status" id="status-av">PENDING</span>
+          </li>
+          <li data-key="enc">
+            <div class="check-icon pending" id="icon-enc"></div>
+            <span class="label-text">Disk encryption (BitLocker / FileVault)</span>
+            <span class="label-status" id="status-enc">PENDING</span>
+          </li>
+          <li data-key="vpn">
+            <div class="check-icon pending" id="icon-vpn"></div>
+            <span class="label-text">VPN client certificate validity</span>
+            <span class="label-status" id="status-vpn">PENDING</span>
+          </li>
+          <li data-key="pkg">
+            <div class="check-icon pending" id="icon-pkg"></div>
+            <span class="label-text">Prohibited software scan</span>
+            <span class="label-status" id="status-pkg">PENDING</span>
+          </li>
+          <li data-key="sec">
+            <div class="check-icon pending" id="icon-sec"></div>
+            <span class="label-text">Security policy registry keys</span>
+            <span class="label-status" id="status-sec">PENDING</span>
+          </li>
+        </ul>
+
+        <div class="progress-section">
+          <div class="progress-label">
+            <span id="progress-label-text">Checking system compliance…</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="loading-footer">
+          Agent: scc-compliance-agent/4.2.1 · Policy DB: 2025-W13 · TLS 1.3 ✓
+        </div>
+      </div>
+
+      <!-- RESULT STATE -->
+      <div id="result-state">
+        <div class="result-banner">
+          <div class="result-banner-icon">✔</div>
+          <div class="result-banner-text">
+            <h2>Device is compliant with SCC security policies</h2>
+            <p>All 7 checks passed · No remediation required · Report ID: <span id="report-id">–</span></p>
+          </div>
+        </div>
+
+        <div class="result-summary">
+          <div class="summary-tile">
+            <div class="tile-label">Checks passed</div>
+            <div class="tile-value green">7 / 7</div>
+          </div>
+          <div class="summary-tile">
+            <div class="tile-label">Risk level</div>
+            <div class="tile-value green">LOW</div>
+          </div>
+          <div class="summary-tile">
+            <div class="tile-label">Next scan due</div>
+            <div class="tile-value" id="next-scan">–</div>
+          </div>
+          <div class="summary-tile">
+            <div class="tile-label">Scan duration</div>
+            <div class="tile-value" id="scan-duration">–</div>
+          </div>
+        </div>
+
+        <div class="fish-section">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Clownfish_%28Amphiprioninae%29.jpg/640px-Clownfish_%28Amphiprioninae%29.jpg"
+            alt="A very compliant fish"
+            title="Fully patched. Very secure."
+          />
+          <div class="fish-caption">
+            If you reached this point, you successfully completed the procedure.<br/>
+            <strong>April Fool 🐟</strong> <br/>
+             Happy April Fool's Day from Ma<span>&#235;</span>va and Christian !!
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-ghost" onclick="restartScan()">↺ Re-run scan</button>
+          <button class="btn btn-primary" onclick="openModal()">
+            <span>⚙</span> Run advanced diagnostics
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+  </div>
+</main>
+
+<footer class="page-footer">
+  scc-compliance-agent · KIT SCC IT Services · Unauthorized access is prohibited and monitored.
+</footer>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="handleBackdropClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3>⚙ Advanced Diagnostics Result</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="diag-row"><div class="diag-dot green"></div><div class="diag-label">Kernel memory integrity</div><div class="diag-val">PASS</div></div>
+      <div class="diag-row"><div class="diag-dot green"></div><div class="diag-label">Secure Boot chain</div><div class="diag-val">VERIFIED</div></div>
+      <div class="diag-row"><div class="diag-dot green"></div><div class="diag-label">TPM 2.0 attestation</div><div class="diag-val">PASS</div></div>
+      <div class="diag-row"><div class="diag-dot green"></div><div class="diag-label">Network traffic analysis</div><div class="diag-val">CLEAN</div></div>
+      <div class="diag-row"><div class="diag-dot green"></div><div class="diag-label">Credential store integrity</div><div class="diag-val">PASS</div></div>
+
+      <div class="modal-punchline">
+        No issues detected !! 😁<br/>
+        Happy April Fool's Day from Ma<span>&#235;</span>va and Christian !! Feel free to check your securtity again anytime ! 😉
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal()">Close report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── UTILITIES ────────────────────────────────────────
+  const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+
+  function genSession() {
+    return Array.from({length: 4}, () =>
+      Math.random().toString(36).slice(2, 6).toUpperCase()
+    ).join('-');
+  }
+
+  function genReportId() {
+    return 'RPT-' + Date.now().toString(36).toUpperCase() + '-SCC';
+  }
+
+  function formatTs(d) {
+    return d.toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+  }
+
+  // ─── INIT HEADER META ─────────────────────────────────
+  const startTime = Date.now();
+  document.getElementById('session-id').textContent = genSession();
+  document.getElementById('header-ts').textContent = formatTs(new Date());
+
+  // ─── CHECKS CONFIG ────────────────────────────────────
+const checks = [
+  { key: 'os',  label: 'OS verified',        delay: 5000,  duration: 6000  },
+  { key: 'fw',  label: 'Firewall OK',         delay: 12000, duration: 6000  },
+  { key: 'av',  label: 'AV OK',               delay: 20000, duration: 6000  },
+  { key: 'enc', label: 'Encryption OK',       delay: 28000, duration: 6000  },
+  { key: 'vpn', label: 'Certificate valid',   delay: 36000, duration: 6000  },
+  { key: 'pkg', label: 'No prohibited apps',  delay: 44000, duration: 6000  },
+  { key: 'sec', label: 'Policy keys OK',      delay: 52000, duration: 6000  },
+];
+
+const totalDuration = 60000; // ms before showing results
+
+  // ─── ANIMATE CHECKS ───────────────────────────────────
+  let completedChecks = 0;
+
+  checks.forEach((c, i) => {
+    // Start
+    setTimeout(() => {
+      const iconEl = document.getElementById('icon-' + c.key);
+      const statusEl = document.getElementById('status-' + c.key);
+      iconEl.classList.remove('pending');
+      statusEl.textContent = 'RUNNING…';
+      statusEl.className = 'label-status running';
+    }, c.delay);
+
+    // Complete
+    setTimeout(() => {
+      const iconEl = document.getElementById('icon-' + c.key);
+      const statusEl = document.getElementById('status-' + c.key);
+      iconEl.innerHTML = '✔';
+      iconEl.classList.add('ok');
+      statusEl.textContent = 'OK';
+      statusEl.className = 'label-status done';
+      completedChecks++;
+    }, c.delay + c.duration);
+  });
+
+  // ─── ANIMATE PROGRESS BAR ─────────────────────────────
+  const fill = document.getElementById('progress-fill');
+  const pct  = document.getElementById('progress-pct');
+  const pLabel = document.getElementById('progress-label-text');
+  const labels = [
+    'Collecting system fingerprint…',
+    'Querying policy database…',
+    'Verifying certificates…',
+    'Checking encryption status…',
+    'Analysing installed packages…',
+    'Validating registry keys…',
+    'Generating compliance report…',
+  ];
+  let labelIdx = 0;
+  const stepMs = totalDuration / 100;
+
+  let currentPct = 0;
+  const progressInterval = setInterval(() => {
+    currentPct++;
+    fill.style.width = currentPct + '%';
+    pct.textContent = currentPct + '%';
+
+    if (currentPct % 15 === 0 && labelIdx < labels.length - 1) {
+      labelIdx++;
+      pLabel.textContent = labels[labelIdx];
+    }
+
+    if (currentPct >= 100) {
+      clearInterval(progressInterval);
+    }
+  }, stepMs);
+
+  // ─── STATUS STRIP UPDATE ──────────────────────────────
+  setTimeout(() => {
+    document.getElementById('status-strip').textContent = '⬤  Finalising report — please wait…';
+  }, 36000);
+
+  // ─── SHOW RESULTS ─────────────────────────────────────
+  setTimeout(() => {
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2) + 's';
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('result-state').style.display  = 'block';
+    document.getElementById('status-strip').textContent    = '✔  Scan complete – device compliant';
+    document.getElementById('status-strip').style.background = '#00796b';
+
+    document.getElementById('report-id').textContent = genReportId();
+    document.getElementById('scan-duration').textContent = elapsed;
+
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 7);
+    document.getElementById('next-scan').textContent = nextDate.toISOString().slice(0, 10);
+  }, totalDuration);
+
+  // ─── MODAL ────────────────────────────────────────────
+  function openModal() {
+    document.getElementById('modal-backdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-backdrop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function handleBackdropClick(e) {
+    if (e.target === document.getElementById('modal-backdrop')) closeModal();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // ─── RESTART ──────────────────────────────────────────
+  function restartScan() {
+    location.reload();
+  }
+</script>
+</body>
+</html>
